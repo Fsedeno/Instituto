@@ -432,13 +432,17 @@ public class Instituto extends MiVentanaBase {
         } else {
             String grupo = (String) tablaAlumnos.getValueAt(0, 4);
             guardaFicheroGrupo(grupo);
+            if(!contieneGrupo(grupo)){
+                jComboListado.addItem(grupo);
+            }
+            JOptionPane.showMessageDialog(jButtonListados, "Listado de la clase "+grupo+" añadido correctamente", "Informacion", JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_jButtonListadosActionPerformed
 
     private void jComboListadoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboListadoItemStateChanged
         DefaultListModel modeloLista = new DefaultListModel();
         if (jComboListado.getSelectedItem() != "Seleccione un Listado") {
-            String ruta = "src/listados/" + jComboListado.getSelectedItem().toString();
+            String ruta = "src/listados/" + jComboListado.getSelectedItem().toString()+".txt";
             //leemos el archivo
             try {
                 String informacion = "\n";
@@ -464,6 +468,8 @@ public class Instituto extends MiVentanaBase {
         } else {
             //limpiamos el jEditor
             editor.setText("\n\n\t\tSelecciona un Listado ...");
+            //limpiamos el jList
+            jListListado.setModel(modeloLista);
         }
         jListListado.setModel(modeloLista);
     }//GEN-LAST:event_jComboListadoItemStateChanged
@@ -651,7 +657,7 @@ public class Instituto extends MiVentanaBase {
         combo.addItem("Seleccione un Listado");
         if (directorio.listFiles() != null) {
             for (File listDir : directorio.listFiles()) {
-                combo.addItem(listDir.getName());
+                combo.addItem(listDir.getName().substring(0, listDir.getName().indexOf(".")));
             }
         }
 
@@ -679,4 +685,17 @@ public class Instituto extends MiVentanaBase {
         }
     }
 
+    boolean contieneGrupo(String grupo){
+        
+        boolean existe=false;
+        
+        for (int i =0 ; i < jComboListado.getItemCount()&&!existe; i++) {
+            if(jComboListado.getItemAt(i).toString().equalsIgnoreCase(grupo)){
+                existe=true;
+            }
+        }
+        
+        return existe;
+    }
+    
 }
