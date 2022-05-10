@@ -1,0 +1,20 @@
+Listado de la clase del Grupo: 1DAW
+---------------------------------------
+	1.-Anet Aguilar, Antonio
+	2.-Navarrete Rodríguez, Ernesto
+	3.-Castro Rayas , Christian
+	4.-Becerra Rivera, Cristina
+	5.-Blázquez Jiménez, Nazaret
+	6.-Combarros  Recuerda, Jaime
+	7.-Fernández Torres, Jaime
+	8.-Guerrero Hormigo, Carlos
+	9.-Mendoza Zambrana, Alejandro
+	10.-Perjo Codes, Javier
+	11.-Rojas Rosado, Alejandro
+	12.-Sánchez Rubio, Juan José
+	13.-Gamarro Orozco, Antonio Ángel
+	14.-Sierra Fernández, José
+	15.-Tolosana Tenorio, Fernando
+	16.-Varela Sánchez, Aarón
+---------------------------------------
+Total: 1
