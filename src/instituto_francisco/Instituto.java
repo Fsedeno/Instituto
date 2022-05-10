@@ -163,6 +163,8 @@ public class Instituto extends MiVentanaBase {
         jComboListado = new javax.swing.JComboBox<>();
         jScrollPaneListados = new javax.swing.JScrollPane();
         jLabel9 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jListListado = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -365,30 +367,36 @@ public class Instituto extends MiVentanaBase {
         jLabel9.setForeground(new java.awt.Color(0, 0, 255));
         jLabel9.setText("Listados de Clase:");
 
+        jScrollPane1.setViewportView(jListListado);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(30, 30, 30)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jComboListado, 0, 161, Short.MAX_VALUE))
-                .addGap(168, 168, 168)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jComboListado, 0, 161, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
                 .addComponent(jScrollPaneListados, javax.swing.GroupLayout.PREFERRED_SIZE, 495, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(128, Short.MAX_VALUE))
+                .addGap(130, 130, 130))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(16, 16, 16)
-                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jComboListado, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jScrollPaneListados, javax.swing.GroupLayout.PREFERRED_SIZE, 409, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 109, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneListados, javax.swing.GroupLayout.PREFERRED_SIZE, 409, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jComboListado, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(33, 33, 33)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 293, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(93, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Listados", jPanel1);
@@ -428,6 +436,7 @@ public class Instituto extends MiVentanaBase {
     }//GEN-LAST:event_jButtonListadosActionPerformed
 
     private void jComboListadoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboListadoItemStateChanged
+        DefaultListModel modeloLista = new DefaultListModel();
         if (jComboListado.getSelectedItem() != "Seleccione un Listado") {
             String ruta = "src/listados/" + jComboListado.getSelectedItem().toString();
             //leemos el archivo
@@ -438,7 +447,7 @@ public class Instituto extends MiVentanaBase {
                 String s;
                 while ((s = entrada.readLine()) != null) {
                     informacion += "\t" + s + "\n";
-
+                    modeloLista.addElement(s);
                 }
                 //añadimos el texto al Jeditorpane
                 editor.setText(informacion);
@@ -456,6 +465,7 @@ public class Instituto extends MiVentanaBase {
             //limpiamos el jEditor
             editor.setText("\n\n\t\tSelecciona un Listado ...");
         }
+        jListListado.setModel(modeloLista);
     }//GEN-LAST:event_jComboListadoItemStateChanged
 
     public static void main(String args[]) {
@@ -482,12 +492,14 @@ public class Instituto extends MiVentanaBase {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JList<String> jListListado;
     private javax.swing.JPanel jP_BuscarAlumnos;
     private javax.swing.JPanel jP_ficha;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jS_Grupos;
     private javax.swing.JScrollPane jS_alumnos;
     private javax.swing.JScrollPane jS_asignaturas;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPaneListados;
     private javax.swing.JTabbedPane jTabbedPane1;
     // End of variables declaration//GEN-END:variables
