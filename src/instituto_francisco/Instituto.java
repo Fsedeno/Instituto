@@ -23,8 +23,11 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -41,6 +44,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.RowSorter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -52,8 +56,9 @@ import javax.swing.table.TableRowSorter;
 public class Instituto extends MiVentanaBase {
 
     Connection conn;
-    JTable tablaAlumnos, tablaGrupos;//para que sea un atributo de la ventana, de la clase instituto
+    JTable tablaAlumnos, tablaGrupos, tablaMatriculasAlumnos, tablaMatriculasModulos;//para que sea un atributo de la ventana, de la clase instituto
     JEditorPane editor = new JEditorPane();
+    HashMap<Integer, ArrayList<String>> matriculas = new HashMap();
 
     public Instituto(String titulo, int ancho, int alto) {//recibe los parametros que tiene que enviarle a miVentana
 
@@ -77,6 +82,7 @@ public class Instituto extends MiVentanaBase {
         JC_cursos.insertItemAt("Seleccione un grupo", 0);
         JC_cursos.setSelectedIndex(0);
         cargaImagenJLabel(JL_Foto, "sinfoto.png");
+        //Evento key released en la tabla alumnos
         tablaAlumnos.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -97,7 +103,7 @@ public class Instituto extends MiVentanaBase {
             }
 
         });
-
+        //Evento de la tabla de alumnos que genera un evento de key released en la tabla alumnos
         tablaAlumnos.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -105,7 +111,7 @@ public class Instituto extends MiVentanaBase {
                 tablaAlumnos.dispatchEvent(ke);//dispatch (lanza o dispara un evento) ejecuta evento
             }
         });
-
+        //Evento para la tabla grupos que filtra la tabla de alumnos
         tablaGrupos.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -114,7 +120,7 @@ public class Instituto extends MiVentanaBase {
             }
 
         });
-
+        //Evento para la tabla grupos que filtra la tabla de alumnos
         tablaGrupos.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -123,6 +129,7 @@ public class Instituto extends MiVentanaBase {
             }
 
         });
+        //Cargamos en el combo de los listados los listados ya creados en src/listados
         jComboListado.setModel(cargaCombo("src/listados").getModel());
 
         //Marcamos el tipo del editor
@@ -130,6 +137,89 @@ public class Instituto extends MiVentanaBase {
         //añadimos el Jeditor al scroll
         jScrollPaneListados.setViewportView(editor);
         editor.setText("\n\n\t\tSelecciona un Listado ...");
+        //Creamos las tablas de la pestaña modulos
+        tablaMatriculasAlumnos = creaTabla(jScrollPaneAlumnos, "Select alumno, nie  from alumnos", conn);
+                tablaMatriculasModulos = creaTabla(jScrollPaneModulos, "Select nombre, clave  from modulos", conn);
+        //Ocultar Columnas de la tabla(Cabecera)
+        tablaMatriculasAlumnos.getTableHeader().getColumnModel().getColumn(1).setMaxWidth(0);
+        tablaMatriculasAlumnos.getTableHeader().getColumnModel().getColumn(1).setMinWidth(0);
+        tablaMatriculasModulos.getTableHeader().getColumnModel().getColumn(1).setMaxWidth(0);
+        tablaMatriculasModulos.getTableHeader().getColumnModel().getColumn(1).setMinWidth(0);
+        //Ocultar columnas de la tabla(Columnas)
+        tablaMatriculasAlumnos.getColumnModel().getColumn(1).setMaxWidth(0);
+        tablaMatriculasAlumnos.getColumnModel().getColumn(1).setMinWidth(0);
+        tablaMatriculasModulos.getColumnModel().getColumn(1).setMaxWidth(0);
+        tablaMatriculasModulos.getColumnModel().getColumn(1).setMinWidth(0);
+        //Cargamos el mapa de las matriculas
+        cargaMapaMatriculas();
+        //Evento en tablaMatriculasAlumnos para filtrar la tabla de modulos desde la tabla de alumnos
+        tablaMatriculasAlumnos.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e); //To change body of generated methods, choose Tools | Templates.
+                int nie = (int) tablaMatriculasAlumnos.getValueAt(tablaMatriculasAlumnos.getSelectedRow(), 1);
+                ArrayList<String> modulos = matriculas.get(nie);
+                ArrayList lista = new ArrayList<RowFilter>();
+                RowFilter filtroOr;
+                TableRowSorter rstabla = (TableRowSorter) tablaMatriculasModulos.getRowSorter();
+                if (modulos != null) {
+                    for (String modulo : modulos) {
+                        lista.add(RowFilter.regexFilter(modulo, 1));
+                    }
+                    filtroOr = RowFilter.orFilter(lista);
+
+                    rstabla.setRowFilter(filtroOr);
+                } else {
+                    rstabla.setRowFilter(null);
+                }
+
+            }
+        });
+
+        tablaMatriculasAlumnos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                KeyEvent ke = new KeyEvent(tablaMatriculasAlumnos, KeyEvent.KEY_RELEASED, 1, 1, 1, 'a');//es una forma de llamar al evento Key que hicimos arriba
+                tablaMatriculasAlumnos.dispatchEvent(ke);//dispatch (lanza o dispara un evento) ejecuta evento
+            }
+        });
+        //Evento para la tabla matriculas modulos para ver los alumnos que estan matriculados en ella
+        tablaMatriculasModulos.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e); //To change body of generated methods, choose Tools | Templates.
+
+                String modulo = (String) tablaMatriculasModulos.getValueAt(tablaMatriculasModulos.getSelectedRow(), 1);
+
+                ArrayList lista = new ArrayList<RowFilter>();
+                RowFilter filtroOr;
+                TableRowSorter rstabla = (TableRowSorter) tablaMatriculasAlumnos.getRowSorter();
+
+                for (Map.Entry<Integer, ArrayList<String>> entry : matriculas.entrySet()) {
+                    int key = entry.getKey();
+                    ArrayList<String> val = entry.getValue();
+                    if (val.contains(modulo)) {
+                        lista.add(RowFilter.numberFilter(RowFilter.ComparisonType.EQUAL, key, 1));
+                    }
+                }
+                if (lista.isEmpty()) {
+                    rstabla.setRowFilter(null);
+                } else {
+                    filtroOr = RowFilter.orFilter(lista);
+
+                    rstabla.setRowFilter(filtroOr);
+                }
+            }
+        });
+        //Dispara un evento keyreleased en la tabla matriculasmodulos
+        tablaMatriculasModulos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                KeyEvent ke = new KeyEvent(tablaMatriculasModulos, KeyEvent.KEY_RELEASED, 1, 1, 1, 'a');//es una forma de llamar al evento Key que hicimos arriba
+                tablaMatriculasModulos.dispatchEvent(ke);//dispatch (lanza o dispara un evento) ejecuta evento
+            }
+        });
+
     }
 
     @SuppressWarnings("unchecked")
@@ -165,6 +255,9 @@ public class Instituto extends MiVentanaBase {
         jLabel9 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jListListado = new javax.swing.JList<>();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPaneAlumnos = new javax.swing.JScrollPane();
+        jScrollPaneModulos = new javax.swing.JScrollPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -401,6 +494,33 @@ public class Instituto extends MiVentanaBase {
 
         jTabbedPane1.addTab("Listados", jPanel1);
 
+        jScrollPaneAlumnos.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Alumnos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Segoe UI", 1, 18), new java.awt.Color(0, 0, 255))); // NOI18N
+
+        jScrollPaneModulos.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Modulos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Segoe UI", 1, 18), new java.awt.Color(255, 0, 0))); // NOI18N
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(37, 37, 37)
+                .addComponent(jScrollPaneAlumnos, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(264, 264, 264)
+                .addComponent(jScrollPaneModulos, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(212, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(80, 80, 80)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPaneModulos)
+                    .addComponent(jScrollPaneAlumnos, javax.swing.GroupLayout.DEFAULT_SIZE, 316, Short.MAX_VALUE))
+                .addContainerGap(122, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Matriculaciones", jPanel2);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -432,17 +552,17 @@ public class Instituto extends MiVentanaBase {
         } else {
             String grupo = (String) tablaAlumnos.getValueAt(0, 4);
             guardaFicheroGrupo(grupo);
-            if(!contieneGrupo(grupo)){
+            if (!contieneGrupo(grupo)) {
                 jComboListado.addItem(grupo);
             }
-            JOptionPane.showMessageDialog(jButtonListados, "Listado de la clase "+grupo+" añadido correctamente", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(jButtonListados, "Listado de la clase " + grupo + " añadido correctamente", "Informacion", JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_jButtonListadosActionPerformed
 
     private void jComboListadoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboListadoItemStateChanged
         DefaultListModel modeloLista = new DefaultListModel();
         if (jComboListado.getSelectedItem() != "Seleccione un Listado") {
-            String ruta = "src/listados/" + jComboListado.getSelectedItem().toString()+".txt";
+            String ruta = "src/listados/" + jComboListado.getSelectedItem().toString() + ".txt";
             //leemos el archivo
             try {
                 String informacion = "\n";
@@ -502,11 +622,14 @@ public class Instituto extends MiVentanaBase {
     private javax.swing.JPanel jP_BuscarAlumnos;
     private javax.swing.JPanel jP_ficha;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jS_Grupos;
     private javax.swing.JScrollPane jS_alumnos;
     private javax.swing.JScrollPane jS_asignaturas;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPaneAlumnos;
     private javax.swing.JScrollPane jScrollPaneListados;
+    private javax.swing.JScrollPane jScrollPaneModulos;
     private javax.swing.JTabbedPane jTabbedPane1;
     // End of variables declaration//GEN-END:variables
 
@@ -685,17 +808,62 @@ public class Instituto extends MiVentanaBase {
         }
     }
 
-    boolean contieneGrupo(String grupo){
-        
-        boolean existe=false;
-        
-        for (int i =0 ; i < jComboListado.getItemCount()&&!existe; i++) {
-            if(jComboListado.getItemAt(i).toString().equalsIgnoreCase(grupo)){
-                existe=true;
+    boolean contieneGrupo(String grupo) {
+
+        boolean existe = false;
+
+        for (int i = 0; i < jComboListado.getItemCount() && !existe; i++) {
+            if (jComboListado.getItemAt(i).toString().equalsIgnoreCase(grupo)) {
+                existe = true;
             }
         }
-        
+
         return existe;
     }
-    
+
+    ResultSet generaResultSet(String consulta) {
+        ResultSet rset = null;
+        try {
+            Statement stmt;
+
+            ResultSetMetaData rsetMd;
+
+            //3.- Crear un Objeto Sentencia.......
+            stmt = conn.createStatement();
+
+            //4.- Lanzar una sentencia contra la BD.......
+            rset = stmt.executeQuery(consulta);
+        } catch (SQLException ex) {
+            Logger.getLogger(Instituto.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return rset;
+    }
+
+    void cargaMapaMatriculas() {
+        String consulta = "select * from matriculas";
+        int nie;
+        String modulo;
+        ArrayList<String> lista = new ArrayList();
+
+        ResultSet rset = generaResultSet(consulta);
+
+        try {
+            while (rset.next()) {
+                nie = rset.getInt(1);
+                modulo = rset.getString(2);
+
+                if ((lista = matriculas.get(nie)) != null) {
+                    lista.add(modulo);
+                } else {
+                    lista = new ArrayList();
+                    lista.add(modulo);
+                    matriculas.put(nie, lista);
+                }
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error con la consulta");
+        }
+
+    }
+
 }
